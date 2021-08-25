@@ -97,7 +97,7 @@
     "jwt_secret_key": "7cdab9b2d1c09ca94b9aae146819e91167ccf765a673ac152c925cc338362f03",
     "CORS_origins": [],
     "username": "freqtrader",
-    "password": "Digital$400s"
+    "password": "YourStrongPassword"
   },
   "bot_name": "freqtrade",
   "initial_state": "running",
