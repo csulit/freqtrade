@@ -35,7 +35,7 @@
     "ccxt_config": { "enableRateLimit": true },
     "ccxt_async_config": {
       "enableRateLimit": true,
-      "rateLimit": 200
+      "rateLimit": 600
     },
     "pair_whitelist": [
       "BTC/USDT",
