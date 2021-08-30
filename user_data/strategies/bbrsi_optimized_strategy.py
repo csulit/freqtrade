@@ -21,21 +21,21 @@ class BBRSIOptimizedStrategy(IStrategy):
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-      "0": 0.15437,
-      "67": 0.10256,
-      "106": 0.03905,
-      "375": 0
+        "0": 0.07,
+        "108": 0.052,
+        "138": 0.017,
+        "330": 0
     }
 
     # Optimal stoploss designed for the strategy.
     # This attribute will be overridden if the config file contains "stoploss".
-    stoploss = -0.28227
+    stoploss = -0.338
 
     # Trailing stoploss
-    trailing_stop = False
-    # trailing_only_offset_is_reached = False
-    # trailing_stop_positive = 0.01
-    # trailing_stop_positive_offset = 0.0  # Disabled / not configured
+    trailing_stop = False  # value loaded from strategy
+    trailing_stop_positive = None  # value loaded from strategy
+    trailing_stop_positive_offset = 0.0  # value loaded from strategy
+    trailing_only_offset_is_reached = False  # value loaded from strategy
 
     # Optimal ticker interval for the strategy.
     timeframe = '15m'
@@ -96,28 +96,43 @@ class BBRSIOptimizedStrategy(IStrategy):
         dataframe['rsi'] = ta.RSI(dataframe)
 
         # Bollinger bands
-        bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
-        dataframe['bb_upperband'] = bollinger['upper']
-        dataframe['bb_midband'] = bollinger['mid']
-        dataframe['bb_lowerband'] = bollinger['lower']
+        bollinger_1sd = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=1)
+        dataframe['bb_lowerband_1sd'] = bollinger_1sd['lower']
+
+        bollinger_2sd = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+        dataframe['bb_lowerband_2sd'] = bollinger_2sd['lower']
 
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Buy hyperspace params:
+        # buy_params = {
+        #     "rsi-value": 35,
+        #     "rsi-enabled": False,
+        #     "buy-trigger": "tr_bb_lower_2sd",
+        # }
+
         dataframe.loc[
             (
-                (dataframe['rsi'] > 38) &  # Signal: RSI is greater 38
-                (dataframe['close'] < dataframe['bb_lowerband']) # Signal: price is less than lower bb 2sd
+                (dataframe['rsi'] > 10) &  # Signal: RSI is greater 38
+                (dataframe['close'] < dataframe['bb_lowerband_2sd']) # Signal: price is less than lower bb 2sd
             ),
             'buy'] = 1
 
         return dataframe
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Sell hyperspace params:
+        # sell_params = {
+        #     "sell-rsi-value": 82,
+        #     "sell-rsi-enabled": True,
+        #     "sell-trigger": "sell_tr_bb_upper_1sd",
+        # }
+
         dataframe.loc[
             (
-                (dataframe['rsi'] > 88) &  # Signal: RSI is greater 88
-                (dataframe['close'] > dataframe['bb_midband']) # Signal: price is greater than mid bb
+                (dataframe['rsi'] > 95) &  # Signal: RSI is greater 88
+                (dataframe['close'] > dataframe['bb_lowerband_1sd']) # Signal: price is greater than mid bb
             ),
             'sell'] = 1
 
